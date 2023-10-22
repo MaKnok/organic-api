@@ -23,6 +23,32 @@ class UserController {
         })
     }
 
+    static getUserByToken = async (req, res)=>{
+        try{
+
+            const cookie = req.cookies['jwt']
+            const claims = jwt.verify(cookie,"secret")
+
+            if (!claims){
+                return res.status(401).send({
+                    message: 'unauthorized'
+                })
+            }
+
+            const user  = await users.findOne({_id: claims._id});
+            const { userPassword, ...data } = await user.toJSON();
+
+            res.send({data: data, token: cookie});
+
+        }catch(err){
+
+            return res.status(401).send({
+                message: 'unauthorized'
+            })
+
+        }
+    }
+
     static registerUser = async(req, res)=>{
 
         let user = new users(req.body);
@@ -39,8 +65,7 @@ class UserController {
 
             await user.save((err)=>{
                 if(err){
-                    res.status(500).send({message: `${err.message} - user registration failed`});
-                    return;
+                    return res.status(500).send({message: `${err.message} - user registration failed`});
                 }else{
                     res.status(201).send(user.toJSON());
                 }
@@ -56,8 +81,6 @@ class UserController {
 
         }
 
-        
-
     }
 
     static loginUser = async(req, res)=>{
@@ -67,20 +90,29 @@ class UserController {
         try{
 
             result = await UserServices.loggingUser(req.body);
+
             if(result.status){
+
+                const { _id } = result.user.toJSON();
+                const token = jwt.sign({_id: _id}, "secret");
+                res.cookie('jwt', token, {
+                        httpOnly: true,
+                        maxAge: 24*60*60*1000
+                })
+
                 res.status(200).send({status: true, 
                                       message: `${result.msg} - user login was successful`, 
-                                      user: req.body.userName, 
-                                      password: req.body.userPassword});
+                                      user: req.body.userName,
+                                      password: req.body.userPassword,
+                                    });
+
             }else{
                 res.status(400).send({status: false, message: `${result.msg} - there was an error with user or/and password`});
             }
 
         }catch (err){
-
             console.log(err);
-            res.status(500).send({status: false, message: `${err.msg} - there was an error with server`});
-
+            res.status(500).send({status: false, message: `${err.msg} - there was an error with the server`});
         }
 
     }
