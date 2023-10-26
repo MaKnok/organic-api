@@ -16,7 +16,31 @@ class UserController {
 
         users.findById(id, (err, users) => {
             if (err) {
-                res.status(400).send({message: `${err.message} - usuário não localizado`})
+                res.status(400).send({message: `${err.message} - Usuário não localizado`})
+            } else {
+                res.status(200).send(users)
+            }
+        })
+    }
+
+    static listUsersByUserName = (req,res)=>{
+        const userName = req.params.userName;
+
+        users.find({'userName': userName}, {}, (err, users) => {
+            if (err) {
+                res.status(400).send({message: `${err.message} - Username não localizado`})
+            } else {
+                res.status(200).send(users)
+            }
+        })
+    }
+
+    static listUsersByUserEmail = (req,res)=>{
+        const userEmail = req.params.userEmail;
+
+        users.find({'userEmail': userEmail}, {}, (err, users) => {
+            if (err) {
+                res.status(400).send({message: `${err.message} - Usermail não localizado`})
             } else {
                 res.status(200).send(users)
             }
@@ -144,7 +168,11 @@ class UserController {
         const role = req.query.role;
 
         users.find({'userRole': role}, {}, (err, users) => {
-            res.status(200).send(users);
+            if (err) {
+                res.status(400).send({message: `${err.message} - usuário não localizado`})
+            } else {
+                res.status(200).send(users)
+            }
         })
     }
 
