@@ -2,8 +2,8 @@ import inventoryItems from "../models/InventoryItem.js";
 
 class InventoryItemController {
     static listInventoryItems = (req,res) => {
-        inventoryItems.find((err, users) => {
-            res.status(200).json(users);
+        inventoryItems.find((err, items) => {
+            res.status(200).json(items);
         })
     }
 
@@ -42,6 +42,53 @@ class InventoryItemController {
         });
 
     }
+
+    static listInventoryItemsBySearch = (req, res) => {
+        const search = req.query.search;
+      
+        inventoryItems.aggregate([
+            {
+              $match: {
+                $or: [
+                  { 'cat-food.itemName': { $regex: search, $options: 'i' } },
+                  { 'cat-health.itemName': { $regex: search, $options: 'i' } },
+                  { 'cat-sup.itemName': { $regex: search, $options: 'i' } },
+                  { 'cat-beauty.itemName': { $regex: search, $options: 'i' } }
+                ]
+              }
+            },
+            {
+              $project: {
+                matchingItems: {
+                  $filter: {
+                    input: {
+                      $concatArrays: [
+                        '$cat-food',
+                        '$cat-health',
+                        '$cat-sup',
+                        '$cat-beauty'
+                      ]
+                    },
+                    as: 'item',
+                    cond: {
+                      $regexMatch: {
+                        input: '$$item.itemName',
+                        regex: search,
+                        options: 'i'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]).exec((err, result) => {
+            if (err) {
+              res.status(400).send({ message: `${err.message} - item not found` });
+            } else {
+              res.status(200).send(result[0].matchingItems);
+            }
+          });
+      }
 
     static registerNewItem = (req, res) => {
         const catId = req.params.catId;
