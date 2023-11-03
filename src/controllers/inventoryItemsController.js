@@ -45,49 +45,60 @@ class InventoryItemController {
 
     static listInventoryItemsBySearch = (req, res) => {
         const search = req.query.search;
-      
-        inventoryItems.aggregate([
-            {
-              $match: {
-                $or: [
-                  { 'cat-food.itemName': { $regex: search, $options: 'i' } },
-                  { 'cat-health.itemName': { $regex: search, $options: 'i' } },
-                  { 'cat-sup.itemName': { $regex: search, $options: 'i' } },
-                  { 'cat-beauty.itemName': { $regex: search, $options: 'i' } }
-                ]
-              }
-            },
-            {
-              $project: {
-                matchingItems: {
-                  $filter: {
-                    input: {
-                      $concatArrays: [
-                        '$cat-food',
-                        '$cat-health',
-                        '$cat-sup',
-                        '$cat-beauty'
-                      ]
-                    },
-                    as: 'item',
-                    cond: {
-                      $regexMatch: {
-                        input: '$$item.itemName',
-                        regex: search,
-                        options: 'i'
+
+            inventoryItems.aggregate([
+                {
+                  $match: {
+                    $or: [
+                      { 'cat-food.itemName': { $regex: search, $options: 'i' } },
+                      { 'cat-health.itemName': { $regex: search, $options: 'i' } },
+                      { 'cat-sup.itemName': { $regex: search, $options: 'i' } },
+                      { 'cat-beauty.itemName': { $regex: search, $options: 'i' } }
+                    ]
+                  }
+                },
+                {
+                  $project: {
+                    matchingItems: {
+                      $filter: {
+                        input: {
+                          $concatArrays: [
+                            '$cat-food',
+                            '$cat-health',
+                            '$cat-sup',
+                            '$cat-beauty'
+                          ]
+                        },
+                        as: 'item',
+                        cond: {
+                          $regexMatch: {
+                            input: '$$item.itemName',
+                            regex: search,
+                            options: 'i'
+                          }
+                        }
                       }
                     }
                   }
                 }
-              }
-            }
-          ]).exec((err, result) => {
-            if (err) {
-              res.status(400).send({ message: `${err.message} - item not found` });
-            } else {
-              res.status(200).send(result[0].matchingItems);
-            }
-          });
+              ]).exec((err, result) => {
+                if (err) {
+                  res.status(500).send({ message: `${err.message} - There was a server error` });
+                } else {
+                  
+                  if (result[0] !== undefined && 
+                      result[0] !== null && 
+                      result[0].length !== 0){
+                        res.status(200).send(result[0].matchingItems);
+                  }else{
+                        res.status(400).send({ message: `Item not found` });
+                  }
+                  
+                }
+              });
+
+        
+        
       }
 
     static registerNewItem = (req, res) => {
