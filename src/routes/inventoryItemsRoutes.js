@@ -5,9 +5,11 @@ const router = express.Router();
 
 router.get('/inventoryItems', InventoryItemController.listInventoryItems);
 router.get('/inventoryItems/:catId/:itemId', InventoryItemController.listInventoryItemsById);
+router.get('/inventoryItems/search', InventoryItemController.listInventoryItemsBySearch);
 router.post('/inventoryItems/:catId', InventoryItemController.registerNewItem);
 router.put('/inventoryItems/:catId/:itemId', InventoryItemController.updateItem);
 router.delete('/inventoryItems/:catId/:itemId', InventoryItemController.deleteItem);
+
 export default router;
 
 

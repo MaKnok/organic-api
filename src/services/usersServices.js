@@ -1,5 +1,6 @@
 import users from "../models/User.js";
 import { encrypt, decrypt } from "../encryptor/encryption.js";
+import jwt from "jsonwebtoken";
 
 class UserServices{
 
@@ -13,9 +14,11 @@ class UserServices{
                                     reject({status: false, msg: "Invalid data"})
                                 }else{
                                     if(result != undefined && result != null){
+
                                         var decryptedPassword = decrypt(result.userPassword);
+
                                         if(decryptedPassword == userLoginData.userPassword){
-                                            resolve({status: true, msg: "User validation was successful"})
+                                            resolve({status: true, msg: "User validation was successful", user: result});
                                         }else{
                                             reject({status: false, msg: "User's password was incorrect"});
                                         }
@@ -30,7 +33,28 @@ class UserServices{
         )
     }
 
+    static applyTokenValidation(userRequest){
+
+        return new Promise(function tokenValidation(resolve, reject){
+
+            const cookie = userRequest.cookies['jwt'];
+            const claims = jwt.verify(cookie, 'secret');
+        
+            if(!claims){
+                reject({status: false, msg: "Unauthenticated"});
+            }
+
+            const user = users.findOne({_id: claims._id});
+            const {userPassword, ...data} = user.toJSON();
+
+            resolve({status: true, data: data});
+
+        })
+
+    }
+
 }
+
 
 export default UserServices;
 
