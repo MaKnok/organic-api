@@ -38,7 +38,8 @@ class UserServices{
         return new Promise(function tokenValidation(resolve, reject){
 
             const cookie = userRequest.cookies['jwt'];
-            const claims = jwt.verify(cookie, 'secret');
+            const secret = process.env.JWT_SECRET || 'secret';
+            const claims = jwt.verify(cookie, secret);
         
             if(!claims){
                 reject({status: false, msg: "Unauthenticated"});

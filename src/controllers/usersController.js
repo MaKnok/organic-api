@@ -50,8 +50,13 @@ class UserController {
     static getUserByToken = async (req, res)=>{
         try{
 
-            const cookie = req.cookies['jwt']
-            const claims = jwt.verify(cookie,"secret")
+            const secret = process.env.JWT_SECRET || 'secret';
+            console.log('JWT_SECRET:', secret);
+
+            const cookie = req.cookies['jwt'];
+            console.log('Received Cookie:', cookie);
+            
+            const claims = jwt.verify(cookie,secret);
 
             if (!claims){
                 return res.status(401).send({
@@ -60,15 +65,23 @@ class UserController {
             }
 
             const user  = await users.findOne({_id: claims._id});
+            if (!user) {
+                return res.status(401).send({
+                    message: 'Unauthorized - User not found',
+                });
+            }
+            
             const { userPassword, ...data } = await user.toJSON();
-
             res.send({data: data, token: cookie});
 
         }catch(err){
 
+            console.error('Error in getUserByToken:', err);
+
             return res.status(401).send({
-                message: 'unauthorized'
-            })
+                message: 'Unauthorized - Invalid or expired token',
+                error: err.message,
+            });
 
         }
     }
@@ -97,11 +110,16 @@ class UserController {
 
              //create JWT Token
              const { _id } = user.toJSON();
-             const token = jwt.sign({_id: _id}, "secret");
+             const secret = process.env.JWT_SECRET || 'secret';
+             const token = jwt.sign({_id: _id}, secret);
              res.cookie('jwt', token, {
-                 httpOnly: true,
-                 maxAge: 24*60*60*1000
-             })
+                httpOnly: true,
+                maxAge: 24 * 60 * 60 * 1000,
+                sameSite: 'None',
+                path: '/',
+                domain: '3.144.4.177',
+                secure: true
+              })
 
         }
 
@@ -118,11 +136,16 @@ class UserController {
             if(result.status){
 
                 const { _id } = result.user.toJSON();
-                const token = jwt.sign({_id: _id}, "secret");
+                const secret = process.env.JWT_SECRET || 'secret';
+                const token = jwt.sign({_id: _id}, secret);
                 res.cookie('jwt', token, {
-                        httpOnly: true,
-                        maxAge: 24*60*60*1000
-                })
+                    httpOnly: true,
+                    maxAge: 24 * 60 * 60 * 1000,
+                    sameSite: 'None',
+                    path: '/',
+                    domain: '3.144.4.177',
+                    secure: true
+                  })
 
                 res.status(200).send({status: true, 
                                       message: `${result.msg} - user login was successful`, 
