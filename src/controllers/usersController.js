@@ -117,7 +117,7 @@ class UserController {
                 maxAge: 24 * 60 * 60 * 1000,
                 sameSite: 'None',
                 path: '/',
-                domain: '3.144.4.177',
+                domain: 'api.itsorganic.shop',
                 secure: true
               })
 
@@ -143,7 +143,7 @@ class UserController {
                     maxAge: 24 * 60 * 60 * 1000,
                     sameSite: 'None',
                     path: '/',
-                    domain: '3.144.4.177',
+                    domain: 'api.itsorganic.shop',
                     secure: true
                   })
 
