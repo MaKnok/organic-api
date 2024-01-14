@@ -2,6 +2,7 @@ import users from "../models/User.js";
 import UserServices from "../services/usersServices.js";
 import { encrypt, decrypt } from "../encryptor/encryption.js";
 import jwt from "jsonwebtoken";
+import expressJwt from "express-jwt";
 
 class UserController {
 
@@ -162,6 +163,28 @@ class UserController {
             res.status(500).send({status: false, message: `${err.msg} - there was an error with the server`});
         }
 
+    }
+
+    static logoutUser = (req, res) => {
+        try {
+            const secret = process.env.JWT_SECRET || 'secret';
+
+            // Extract the token from the request body
+            const token = req.body.token;
+
+            // Check if the token is present
+            if (!token) {
+                return res.status(400).json({ message: 'Token not found in the request body' });
+            }
+            // Add the token to the blacklist (you should use a database in production)
+            //tokenBlacklist.add(token);
+            // Send a response indicating successful logout
+            res.clearCookie('jwt'); // Clear the cookie on the client side
+            res.status(200).json({ message: 'Logout successful' });
+        } catch (err) {
+            console.error('Error in logoutUser:', err);
+            res.status(500).json({ message: 'Internal server error', error: err.message });
+        }
     }
 
     static updateUser = (req, res)=>{

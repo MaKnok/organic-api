@@ -11,6 +11,7 @@ router.get("/users/useremail/:userEmail", UserController.listUsersByUserEmail);
 router.get("/user", UserController.getUserByToken);
 router.post("/users", UserController.registerUser);
 router.post("/users/login", UserController.loginUser);
+router.post("/users/logout", UserController.logoutUser);
 router.put("/users/:id", UserController.updateUser);
 router.delete("/users/:id", UserController.deleteUser);
 
